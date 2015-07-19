@@ -1,0 +1,19 @@
+Company,Revenu (Billion),Country,Sector,report_emission,target_reduction
+Wal-Mart Stores,469.2,USA,Comsumer Staples,true,true
+Exxon Mobil,449.9,USA,Energy,false,false
+Chevron,233.9,USA,Energy,false,false
+Phillips,169.6,USA,Energy,false,false
+Berkshire Hathaway,162.5,USA,Financials,false,true
+Apple,156.5,USA,Information Technology,true,true
+General Motors,152.3,USA,Consumer Discretionary,true,false
+General Electric,146.9,USA,Consumer Discretionary,true,false
+Valero Energy,138.3,USA,Energy,true,false
+Ford Motor,134.3,USA,Consumer Discretionary,false,false
+AT&T,127.4,USA,Telecommunication Services,false,false
+CVS Caremark,123.1,USA,Comsumer Staples,false,false
+McKesson,122.7,USA,Health Care,false,false
+Hewlett-Packard,120.4,USA,Information Technology,true,false
+Verizon Communications,115.8,USA,Telecommunication Services,false,false
+UnitedHealth Group,110.6,USA,Health Care,true,true
+J.P. Morgan Chase & Co.,108.2,USA,Financials,false,false
+Cardinal Health,107.6,USA,Health Care,true,false

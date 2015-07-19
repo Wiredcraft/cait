@@ -1,0 +1,5 @@
+Company,Size,BaseYear,FinalYear,isScienceBased
+Apple,0.9O,2010,2050,true
+Wal-Mart,0.4O,2012,2030,false
+Exxon Mobil,0.2O,2013,2025,false
+CVS Caremark,0.62,2014,2034,true

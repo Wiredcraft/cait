@@ -1,0 +1,29 @@
+[{
+  "company": "Apple",
+  "method": "X",
+  "milestones": [
+    {
+      "year": "2020",
+      "size": 0.3
+    }, {
+      "year": "2030",
+      "size": 0.5
+    }, {
+      "year": "2040",
+      "size": 0.7
+    }]
+},{
+  "company": "Wal-Mart",
+  "method": "Y",
+  "milestones": [
+    {
+      "year": "2015",
+      "size": 0.1
+    }, {
+      "year": "2020",
+      "size": 0.2
+    }, {
+      "year": "2025",
+      "size": 0.3
+    }]
+}]
