@@ -14,4 +14,6 @@ ma = Marshmallow(app)
 
 
 from app.api_module.views import mod as api_module
+from app.client_module.views import mod as client_module
 app.register_blueprint(api_module)
+app.register_blueprint(client_module)
