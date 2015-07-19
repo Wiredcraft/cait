@@ -13,6 +13,10 @@ class Company(db.Model):
     emission_reports = db.relationship('EmissionReport', backref='company', lazy='dynamic')
     reduction_targets = db.relationship('ReductionTarget', backref='company', lazy='dynamic')
 
+    __mapper_args__ = {
+        'order_by': name,
+    }
+
 
 class EmissionReport(db.Model):
     id = db.Column(db.Integer, primary_key=True)
