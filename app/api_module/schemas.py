@@ -38,6 +38,7 @@ class ReductionTargetSchema(ma.ModelSchema):
 class CompanyDetailSchema(ma.ModelSchema):
     revenue = fields.Float()
     emission_reports = fields.Nested(EmissionReportSchema, many=True)
+    reduction_targets = fields.Nested(ReductionTargetSchema, many=True)
 
     class Meta:
         model = Company
