@@ -6,7 +6,7 @@ from app import db
 from app.api_module.models import Company, EmissionReport, ReductionTarget, Milestone
 
 
-DATA_PATH = 'app/assets/data/'
+DATA_PATH = 'seed_data/'
 
 
 def init_db():
