@@ -3,12 +3,13 @@
 
 import React from 'react';
 import _ from 'underscore';
+import numeral from 'numeral';
 import { Link } from 'react-router';
 import Loader from 'react-loader';
 import { Alert, PageHeader } from 'react-bootstrap';
 
 import { APIClient } from 'apiclient.js';
-import { LineChart, GoogleLineChart } from 'components/chart.js';
+import { GoogleLineChart } from 'components/chart.js';
 
 
 var CompanyDetail = React.createClass({
@@ -99,6 +100,10 @@ var EmissionChart  = React.createClass({
         company: React.PropTypes.object.isRequired,
     },
 
+    _formatEmissionNum(num) {
+        return numeral(num).format('0.0a') + ' tonnes';
+    },
+
     render () {
         let {company} = this.props;
 
@@ -106,16 +111,17 @@ var EmissionChart  = React.createClass({
         data.addColumn('date', 'Date');
         data.addColumn('number', 'Emissions');
         data.addColumn({type: 'string', role: 'tooltip'});
-        data.addColumn('number', 'Reduction targets');
+        data.addColumn('number', 'Reduction target');
         data.addColumn({type: 'string', role: 'tooltip'});
 
         // Plot emission report data:
-        company.emission_reports.forEach(e => {
+        company.emission_reports.forEach((e, i, arr) => {
+            let emissions = e.emissions * 1e06;
             data.addRow([
                 new Date(e.year + ''),
-                e.emissions,
-                Number(e.emissions).toFixed(2),
-                null,
+                emissions,
+                this._formatEmissionNum(emissions),
+                i === arr.length - 1 ? emissions : null,
                 null,
             ]);
         });
@@ -125,30 +131,31 @@ var EmissionChart  = React.createClass({
         let baseEmissions = _.last(company.emission_reports).emissions;
 
         if (target) {
-            target.milestones.forEach((ms, i) => {
-                let msEmissions = baseEmissions - ms.size * baseEmissions;
+            target.milestones.forEach(ms => {
+                let emissions = (baseEmissions - ms.size * baseEmissions) * 1e06;
                 data.addRow([
                     new Date(ms.year + ''),
-                    i === 0 ? msEmissions : null,
                     null,
-                    msEmissions,
-                    Number(msEmissions).toFixed(2),
+                    null,
+                    emissions,
+                    this._formatEmissionNum(emissions),
                 ]);
             });
 
-            let finalEmissions = baseEmissions - target.size * baseEmissions;
+            let emissions = (baseEmissions - target.size * baseEmissions) * 1e06;
             data.addRow([
                 new Date(target.final_year + ''),
                 null,
                 null,
-                finalEmissions,
-                Number(finalEmissions).toFixed(2),
+                emissions,
+                this._formatEmissionNum(emissions),
             ]);
         }
 
         // Set chart options & formatting:
         let options = {
             title: 'Emissions per year',
+            vAxis: { title: 'Emissions (tonnes CO2 equivalent)' },
             series: {
                 0: {color: '#E34F64'},
                 1: {color: '#5582B9', lineDashStyle: [6, 6]},

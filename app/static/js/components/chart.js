@@ -59,7 +59,6 @@ var GoogleLineChart  = React.createClass({
     },
 
     _handleResize() {
-        console.log('redraw');
         this._drawChart();
     },
 
