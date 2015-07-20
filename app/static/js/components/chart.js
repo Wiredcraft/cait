@@ -16,6 +16,10 @@ var GoogleLineChart  = React.createClass({
 
     mixins: [WindowResizeMixin],
 
+    componentDidMount() {
+        this._drawChart(this.props.data, this.props.options);
+    },
+
     componentWillReceiveProps(nextProps) {
         this._drawChart(nextProps.data, nextProps.options);
     },
@@ -42,7 +46,7 @@ var GoogleLineChart  = React.createClass({
     },
 
     _handleResize() {
-        this._drawChart();
+        this._drawChart(this.props.data, this.props.options);
     },
 
     render () {

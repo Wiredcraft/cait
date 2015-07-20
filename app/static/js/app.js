@@ -2,6 +2,7 @@
 /* global google */
 
 import '../css/style.css';
+import 'react-select/dist/default.css';
 import 'bootstrap-webpack';
 
 import React from 'react';

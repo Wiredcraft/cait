@@ -1,15 +1,15 @@
 'use strict';
-/* global google */
 
 import React from 'react';
 import _ from 'underscore';
-import numeral from 'numeral';
+
 import { Link } from 'react-router';
-import Loader from 'react-loader';
 import { Alert, PageHeader } from 'react-bootstrap';
+import Select from 'react-select';
+import Loader from 'react-loader';
 
 import { APIClient } from 'apiclient.js';
-import { GoogleLineChart } from 'components/chart.js';
+import { EmissionChart } from 'components/emission-chart.js';
 
 
 var CompanyDetail = React.createClass({
@@ -22,43 +22,73 @@ var CompanyDetail = React.createClass({
     getInitialState() {
         return {
             companies: {},
-            companyLoaded: false,
+            chartLoaded: false,
         };
     },
 
     componentDidMount() {
-        this._fetchCompany(this.props.params.companyId);
-        this._fetchCompany(12);
+        this._fetchCompanies();
     },
 
-    _fetchCompany(companyId) {
+    _fetchCompanies(companyId) {
         this.setState({
-            companyLoaded: false,
+            chartLoaded: false,
         });
 
-        APIClient.getCompanyDetail(companyId)
+        APIClient.getCompanies(companyId)
             .done(resp => {
-                let companies = this.state.companies;
-                companies[companyId] = resp;
-                this.setState({companies: companies});
+                let companies = _.indexBy(resp.data, 'id');
+                companies[this.props.params.companyId].isBaseCompany = true;
+
+                this.setState({
+                    companies: companies,
+                });
             })
             .fail((xhr, textStatus, errorThrown) => {
                 alert(`Failed to load company: ${errorThrown}`);
             })
             .always(() => {
-                this.setState({companyLoaded: true});
+                this.setState({chartLoaded: true});
             });
     },
 
-    render() {
-        let {companyLoaded, companies} = this.state;
-        let active = companies[this.props.params.companyId];
+    _handleCompareChange(selectedIds) {
+        let companies = this.state.companies;
+        _.each(companies, (company, companyId) => {
+            companies[companyId].isCompared = _.contains(selectedIds, companyId);
+        });
 
+        this.setState({
+            companies: companies,
+        });
+    },
+
+    render() {
+        let {chartLoaded, companies} = this.state;
+        let active = companies[this.props.params.companyId];
         let content;
+
         if (active) {
+            let compareSelect;
             let emissionChart = <NoEmissionReportsMsg company={active} />;
+
             if (active.emission_reports.length > 0) {
-                emissionChart = <EmissionChart companies={_.values(companies)} />;
+                let companiesInChart = _.values(companies).filter(c => {
+                    return c.isCompared || c.isBaseCompany;
+                });
+
+                emissionChart = (
+                    <div>
+                        <EmissionChart companies={companiesInChart} />
+                    </div>
+                );
+
+                compareSelect = (
+                    <CompanyCompareSelect
+                        companies={_.values(companies)}
+                        onChange={this._handleCompareChange}
+                    />
+                );
             }
 
             content = (
@@ -67,7 +97,10 @@ var CompanyDetail = React.createClass({
                         {active.name}
                         <small> {active.country}/{active.sector}/${active.revenue}bn</small>
                     </PageHeader>
-                    {emissionChart}
+                    <Loader loaded={chartLoaded}>
+                        {compareSelect}
+                        {emissionChart}
+                    </Loader>
                 </div>
             );
         }
@@ -75,10 +108,42 @@ var CompanyDetail = React.createClass({
         return (
             <div className='container company-detail'>
                 <Link to='companyList'>Back</Link>
-                <Loader loaded={companyLoaded}>
-                    {content}
-                </Loader>
+                {content}
             </div>
+        );
+    }
+});
+
+
+var CompanyCompareSelect  = React.createClass({
+    propTypes: {
+        companies: React.PropTypes.array.isRequired,
+        onChange: React.PropTypes.func.isRequired,
+    },
+
+    _handleChange(value) {
+        this.props.onChange(value.split(','));
+    },
+
+    shouldComponentUpdate: function() {
+        return false;
+    },
+
+    render () {
+        let options = this.props.companies.filter(c => {
+            return c.emission_reports.length > 0 && !c.isBaseCompany;
+        }).map(c => {
+            return {value: c.id, label: c.name};
+        });
+
+        return (
+            <Select
+                options={options}
+                multi={true}
+                onChange={this._handleChange}
+                searchable={true}
+                placeholder='Compare with other companies'
+            />
         );
     }
 });
@@ -94,103 +159,6 @@ var NoEmissionReportsMsg  = React.createClass({
             <Alert bsStyle='warning'>
                 {this.props.company.name} has no emission reports.
             </Alert>
-        );
-    }
-});
-
-
-var EmissionChart  = React.createClass({
-    propTypes: {
-        companies: React.PropTypes.array.isRequired,
-    },
-
-    _formatEmission(num, company) {
-        num = numeral(num).format('0.0a');
-        return `${num} tonnes (${company.name})`;
-    },
-
-    render () {
-        let {companies} = this.props;
-
-        let dataTables = companies.map(company => {
-            let data = new google.visualization.DataTable();
-            data.addColumn('date', 'Date');
-            data.addColumn('number', `Emissions - ${company.name}`);
-            data.addColumn({type: 'string', role: 'tooltip'});
-            data.addColumn('number', `Reduction target - ${company.name}`);
-            data.addColumn({type: 'string', role: 'tooltip'});
-
-            // Plot emission report data:
-            company.emission_reports.forEach((e, i, arr) => {
-                let emissions = e.emissions * 1e06;
-                data.addRow([
-                    new Date(e.year + ''),
-                    emissions,
-                    this._formatEmission(emissions, company),
-                    i === arr.length - 1 ? emissions : null,
-                    null,
-                ]);
-            });
-
-            // Plot possible reduction target data:
-            let target = _.first(company.reduction_targets);
-            let baseEmissions = _.last(company.emission_reports).emissions;
-
-            if (target) {
-                target.milestones.forEach(ms => {
-                    let emissions = (baseEmissions - ms.size * baseEmissions) * 1e06;
-                    data.addRow([
-                        new Date(ms.year + ''),
-                        null,
-                        null,
-                        emissions,
-                        this._formatEmission(emissions, company),
-                    ]);
-                });
-
-                let emissions = (baseEmissions - target.size * baseEmissions) * 1e06;
-                data.addRow([
-                    new Date(target.final_year + ''),
-                    null,
-                    null,
-                    emissions,
-                    this._formatEmission(emissions, company),
-                ]);
-            }
-
-            return data;
-        });
-
-        // Merge companies into a single dataTable:
-        let data = dataTables[0];
-        if (dataTables.length > 1) {
-            data = _.reduce(_.rest(dataTables), (combined, table) => {
-                return google.visualization.data.join(combined, table, 'full', [[0, 0]], [1,2,3,4], [1,2,3,4]);
-            }, dataTables[0]);
-        }
-
-        // Set chart options & formatting:
-        let series = {};
-        companies.forEach((c, i) => {
-            series[i*2 + 1] = {lineDashStyle: [6, 6], visibleInLegend: false};
-        });
-
-        let options = {
-            title: 'Emissions per year',
-            vAxis: { title: 'Emissions (tonnes CO2 equivalent)' },
-            interpolateNulls: true,
-            series: series,
-        };
-
-        let dateFormatter = new google.visualization.DateFormat({
-            pattern: 'y',
-        });
-        dateFormatter.format(data, 0);
-
-        return (
-            <div>
-                <GoogleLineChart data={data} options={options} />
-            </div>
         );
     }
 });
