@@ -1,7 +1,6 @@
 'use strict';
 
 import $ from 'jquery';
-// import { getCookie, csrfSafeMethod } from './utils.js';
 
 
 var APIClient = {};
@@ -30,15 +29,6 @@ APIClient._ajax = function(type, url, data={}) {
 function csrfSafeMethod(method) {
     return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
 }
-
-
-// $.ajaxSetup({
-//     beforeSend: function(xhr, settings) {
-//         if (!csrfSafeMethod(settings.type) && !this.crossDomain) {
-//             xhr.setRequestHeader('X-CSRFToken', getCookie('csrftoken'));
-//         }
-//     }
-// });
 
 
 export { APIClient };
