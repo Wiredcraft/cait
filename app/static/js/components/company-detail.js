@@ -7,7 +7,7 @@ import Loader from 'react-loader';
 import { Alert, PageHeader } from 'react-bootstrap';
 
 import { APIClient } from 'apiclient.js';
-import { LineChart } from 'components/chart.js';
+import { LineChart, DyLineChart } from 'components/chart.js';
 
 
 var CompanyDetail = React.createClass({
@@ -101,16 +101,39 @@ var EmissionChart  = React.createClass({
     render () {
         let {company} = this.props;
 
-        let columns = [['year'], ['historical emissions']];
+        let columns = [['year'], ['emissions']];
+
         company.emission_reports.forEach(e => {
             columns[0].push(e.year);
             columns[1].push(e.emissions);
         });
 
+        let target = _.first(company.reduction_targets);
+        let baseEmissions = _.last(company.emission_reports).emissions;
+
+        if (target) {
+            columns.push(columns[0].map((c, i) => {
+                return i === 0 ? 'target' : null;
+            }));
+
+            columns[0].push(_.last(columns[0]));
+            columns[2].push(_.last(columns[1]));
+
+            target.milestones.forEach(ms => {
+                columns[0].push(ms.year);
+                columns[1].push(null);
+                columns[2].push(baseEmissions - ms.size * baseEmissions);
+            });
+
+            columns[0].push(target.final_year);
+            columns[1].push(null);
+            columns[2].push(baseEmissions - target.size * baseEmissions);
+        }
+
         let params = {
             axis: {
-                x: { label: 'Year' },
-                y: { label: 'Emissions (tonnes CO2 equivalent)' },
+                x: {label: 'Year'},
+                y: {label: 'Emissions (tonnes CO2 equivalent)'},
             },
             data: {
                 x: 'year',
@@ -119,7 +142,9 @@ var EmissionChart  = React.createClass({
         };
 
         return (
-            <LineChart params={params} />
+            <div>
+                <LineChart params={params} />
+            </div>
         );
     }
 });

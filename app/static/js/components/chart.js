@@ -7,21 +7,10 @@ import c3 from 'c3';
 
 var LineChart  = React.createClass({
     propTypes: {
-        params: React.PropTypes.object,
+        params: React.PropTypes.object.isRequired,
     },
 
-    getDefaultProps() {
-        return {
-            params: {
-                axis: {},
-                data: {
-                    columns: [],
-                },
-            },
-        };
-    },
-
-    getInitialState: function() {
+    getInitialState() {
         return {
             chart: null,
         };
