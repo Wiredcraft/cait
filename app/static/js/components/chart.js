@@ -10,40 +10,23 @@ import { WindowResizeMixin } from 'mixins.js';
 
 var GoogleLineChart  = React.createClass({
     propTypes: {
-        data: React.PropTypes.object,
-        options: React.PropTypes.object,
+        data: React.PropTypes.object.isRequired,
+        options: React.PropTypes.object.isRequired,
     },
 
     mixins: [WindowResizeMixin],
 
-    getDefaultProps() {
-        return {
-            data: [],
-            options: {},
-        };
+    componentWillReceiveProps(nextProps) {
+        this._drawChart(nextProps.data, nextProps.options);
     },
 
-    getInitialState() {
-        return {
-            chart: null,
-        };
-    },
-
-    componentDidMount() {
-        this._drawChart();
-    },
-
-    _drawChart() {
+    _drawChart(data, options) {
         let target = this.refs.chart.getDOMNode();
         let chart = new google.visualization.LineChart(target);
-        chart.draw(this.props.data, this._getChartOptions());
-
-        this.setState({
-            chart: chart
-        });
+        chart.draw(data, this._getChartOptions(options));
     },
 
-    _getChartOptions() {
+    _getChartOptions(options) {
         var defaultOpts = {
             backgroundColor: {fill: 'transparent'},
             explorer: null,
@@ -55,7 +38,7 @@ var GoogleLineChart  = React.createClass({
             height: 400,
         };
 
-        return _.extend(defaultOpts, this.props.options);
+        return _.extend(defaultOpts, options);
     },
 
     _handleResize() {
