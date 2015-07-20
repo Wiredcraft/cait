@@ -25,7 +25,8 @@
     "bootstrap-webpack": "0.0.3",
     "react-bootstrap": "~0.23.7",
     "react-loader": "~1.4.0",
-    "numeral": "~1.5.3"
+    "numeral": "~1.5.3",
+    "react-select": "~0.5.5"
   },
   "devDependencies": {
     "json-loader": "~0.5.2",
