@@ -143,7 +143,7 @@ var CompanyListItem = React.createClass({
         return (
             <Link to='companyDetail' params={{companyId: c.id}}>
                 <ListGroupItem header={c.name}>
-                    {c.revenue} {c.country} {c.sector} {c.hidden || ''}
+                    {c.country}/{c.sector}/${c.revenue}bn
                 </ListGroupItem>
             </Link>
         );
