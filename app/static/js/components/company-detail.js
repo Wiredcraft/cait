@@ -4,6 +4,7 @@ import React from 'react';
 import _ from 'underscore';
 import { Link } from 'react-router';
 import Loader from 'react-loader';
+import { Alert, PageHeader } from 'react-bootstrap';
 
 import { APIClient } from 'apiclient.js';
 import { LineChart } from 'components/chart.js';
@@ -49,10 +50,18 @@ var CompanyDetail = React.createClass({
 
         let content;
         if (company !== null) {
+            let emissionChart = <NoEmissionReportsMsg company={company} />;
+            if (company.emission_reports.length > 0) {
+                emissionChart = <EmissionChart company={company} />;
+            }
+
             content = (
                 <div>
-                    {company.name} {company.country} {company.revenue}
-                    <EmissionChart company={company} />
+                    <PageHeader>
+                        {company.name}
+                        <small> {company.country}/{company.sector}/${company.revenue}bn</small>
+                    </PageHeader>
+                    {emissionChart}
                 </div>
             );
         }
@@ -64,6 +73,21 @@ var CompanyDetail = React.createClass({
                     {content}
                 </Loader>
             </div>
+        );
+    }
+});
+
+
+var NoEmissionReportsMsg  = React.createClass({
+    propTypes: {
+        company: React.PropTypes.object.isRequired,
+    },
+
+    render () {
+        return (
+            <Alert bsStyle='warning'>
+                {this.props.company.name} has no emission reports.
+            </Alert>
         );
     }
 });
