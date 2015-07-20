@@ -1,4 +1,5 @@
 'use strict';
+/* global google */
 
 import React from 'react';
 import _ from 'underscore';
@@ -7,7 +8,7 @@ import Loader from 'react-loader';
 import { Alert, PageHeader } from 'react-bootstrap';
 
 import { APIClient } from 'apiclient.js';
-import { LineChart, DyLineChart } from 'components/chart.js';
+import { LineChart, GoogleLineChart } from 'components/chart.js';
 
 
 var CompanyDetail = React.createClass({
@@ -101,49 +102,49 @@ var EmissionChart  = React.createClass({
     render () {
         let {company} = this.props;
 
-        let columns = [['year'], ['emissions']];
+        let data = new google.visualization.DataTable();
+        data.addColumn('date', 'Date');
+        data.addColumn('number', 'Emissions (tonnes CO2 equivalent)');
+        data.addColumn({type:'boolean',role:'certainty'});
 
+        // Plot emission report data:
         company.emission_reports.forEach(e => {
-            columns[0].push(e.year);
-            columns[1].push(e.emissions);
+            data.addRow([new Date(e.year + ''), e.emissions, true]);
         });
 
+        // Plot possible reduction target data:
         let target = _.first(company.reduction_targets);
         let baseEmissions = _.last(company.emission_reports).emissions;
 
         if (target) {
-            columns.push(columns[0].map((c, i) => {
-                return i === 0 ? 'target' : null;
-            }));
-
-            columns[0].push(_.last(columns[0]));
-            columns[2].push(_.last(columns[1]));
-
             target.milestones.forEach(ms => {
-                columns[0].push(ms.year);
-                columns[1].push(null);
-                columns[2].push(baseEmissions - ms.size * baseEmissions);
+                let msEmissions = baseEmissions - ms.size * baseEmissions;
+                data.addRow([new Date(ms.year + ''), msEmissions, false]);
             });
 
-            columns[0].push(target.final_year);
-            columns[1].push(null);
-            columns[2].push(baseEmissions - target.size * baseEmissions);
+            let finalEmissions = baseEmissions - target.size * baseEmissions;
+            data.addRow([new Date(target.final_year + ''), finalEmissions, false]);
         }
 
-        let params = {
-            axis: {
-                x: {label: 'Year'},
-                y: {label: 'Emissions (tonnes CO2 equivalent)'},
-            },
-            data: {
-                x: 'year',
-                columns: columns,
-            },
+        // Set chart options & formatting:
+        let options = {
+            title: 'Emissions per year',
         };
+
+        let dateFormatter = new google.visualization.DateFormat({
+            pattern: 'y',
+        });
+        dateFormatter.format(data, 0);
+
+        let numFormatter = new google.visualization.NumberFormat({
+            fractionDigits: 2,
+            suffix: ''
+        });
+        numFormatter.format(data, 1);
 
         return (
             <div>
-                <LineChart params={params} />
+                <GoogleLineChart data={data} options={options} />
             </div>
         );
     }
