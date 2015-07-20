@@ -104,12 +104,20 @@ var EmissionChart  = React.createClass({
 
         let data = new google.visualization.DataTable();
         data.addColumn('date', 'Date');
-        data.addColumn('number', 'Emissions (tonnes CO2 equivalent)');
-        data.addColumn({type:'boolean',role:'certainty'});
+        data.addColumn('number', 'Emissions');
+        data.addColumn({type: 'string', role: 'tooltip'});
+        data.addColumn('number', 'Reduction targets');
+        data.addColumn({type: 'string', role: 'tooltip'});
 
         // Plot emission report data:
         company.emission_reports.forEach(e => {
-            data.addRow([new Date(e.year + ''), e.emissions, true]);
+            data.addRow([
+                new Date(e.year + ''),
+                e.emissions,
+                Number(e.emissions).toFixed(2),
+                null,
+                null,
+            ]);
         });
 
         // Plot possible reduction target data:
@@ -117,30 +125,40 @@ var EmissionChart  = React.createClass({
         let baseEmissions = _.last(company.emission_reports).emissions;
 
         if (target) {
-            target.milestones.forEach(ms => {
+            target.milestones.forEach((ms, i) => {
                 let msEmissions = baseEmissions - ms.size * baseEmissions;
-                data.addRow([new Date(ms.year + ''), msEmissions, false]);
+                data.addRow([
+                    new Date(ms.year + ''),
+                    i === 0 ? msEmissions : null,
+                    null,
+                    msEmissions,
+                    Number(msEmissions).toFixed(2),
+                ]);
             });
 
             let finalEmissions = baseEmissions - target.size * baseEmissions;
-            data.addRow([new Date(target.final_year + ''), finalEmissions, false]);
+            data.addRow([
+                new Date(target.final_year + ''),
+                null,
+                null,
+                finalEmissions,
+                Number(finalEmissions).toFixed(2),
+            ]);
         }
 
         // Set chart options & formatting:
         let options = {
             title: 'Emissions per year',
+            series: {
+                0: {color: '#E34F64'},
+                1: {color: '#5582B9', lineDashStyle: [6, 6]},
+            },
         };
 
         let dateFormatter = new google.visualization.DateFormat({
             pattern: 'y',
         });
         dateFormatter.format(data, 0);
-
-        let numFormatter = new google.visualization.NumberFormat({
-            fractionDigits: 2,
-            suffix: ''
-        });
-        numFormatter.format(data, 1);
 
         return (
             <div>
