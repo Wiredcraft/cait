@@ -1,6 +1,7 @@
 'use strict';
 
 import '../css/style.css';
+import 'c3/c3.css';
 import 'bootstrap-webpack';
 
 import React from 'react';
