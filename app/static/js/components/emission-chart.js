@@ -25,7 +25,7 @@ var EmissionChart  = React.createClass({
         let dataTables = companies.map(company => {
             let data = new google.visualization.DataTable();
             data.addColumn('date', 'Date');
-            data.addColumn('number', `Emissions - ${company.name}`);
+            data.addColumn('number', company.name);
             data.addColumn({type: 'string', role: 'tooltip'});
             data.addColumn('number', `Reduction target - ${company.name}`);
             data.addColumn({type: 'string', role: 'tooltip'});

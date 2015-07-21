@@ -3,7 +3,7 @@
 import React from 'react';
 import _ from 'underscore';
 
-import { PageHeader, Alert, Glyphicon, Grid, Row, Col } from 'react-bootstrap';
+import { Alert, Glyphicon, Grid, Row, Col } from 'react-bootstrap';
 import Select from 'react-select';
 import Loader from 'react-loader';
 
@@ -86,9 +86,7 @@ var Companies = React.createClass({
 
         return (
             <div className='container company-detail'>
-                <PageHeader>
-                    Compare companies
-                </PageHeader>
+                <b>Select companies to compare: </b>
                 <Loader loaded={chartLoaded}>
                     <Grid>
                         <Row>
