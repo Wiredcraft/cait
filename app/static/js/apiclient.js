@@ -9,10 +9,6 @@ APIClient.getCompanies = function() {
     return this._ajax('GET', '/api/companies/');
 };
 
-APIClient.getCompanyDetail = function(companyId) {
-    return this._ajax('GET', `/api/companies/${companyId}/`);
-};
-
 APIClient._ajax = function(type, url, data={}) {
     type = type.toUpperCase();
     let params = {

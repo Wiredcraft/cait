@@ -3,21 +3,16 @@
 import React from 'react';
 import _ from 'underscore';
 
-import { PageHeader } from 'react-bootstrap';
+import { PageHeader, Alert, Glyphicon, Grid, Row, Col } from 'react-bootstrap';
 import Select from 'react-select';
 import Loader from 'react-loader';
 
 import { APIClient } from 'apiclient.js';
-import { EmissionChart } from 'components/emission-chart.js';
+import { EmissionChart } from './emission-chart.js';
+import { CompanyAccordion } from './company-accordion.js';
 
 
-var CompanyDetail = React.createClass({
-    propTypes: {
-        params: React.PropTypes.shape({
-            companyId: React.PropTypes.string.isRequired,
-        }).isRequired,
-    },
-
+var Companies = React.createClass({
     getInitialState() {
         return {
             companies: [],
@@ -36,11 +31,9 @@ var CompanyDetail = React.createClass({
 
         APIClient.getCompanies()
             .done(resp => {
-                // Initially select the 1st company with emission data:
                 let firstIdWithEmissionData = _.findIndex(resp.data, c => {
                     return c.emission_reports.length > 0;
                 });
-
                 resp.data[firstIdWithEmissionData].selected = true;
 
                 this.setState({
@@ -66,11 +59,30 @@ var CompanyDetail = React.createClass({
         });
     },
 
+    _handleDeselect(companyId) {
+        let updatedCompanies = this.state.companies.map(c => {
+            c.selected = c.id === companyId ? false : c.selected;
+            return c;
+        });
+
+        this.setState({
+            companies: updatedCompanies,
+        });
+    },
+
     render() {
         let {chartLoaded, companies} = this.state;
         let selectedCompanies = companies.filter(c => {
             return c.selected;
         });
+
+        let emissionChart = selectedCompanies.length === 0 ? (
+            <NoCompaniesSelectedMsg />
+        ) : (
+            <EmissionChart
+                companies={selectedCompanies}
+            />
+        );
 
         return (
             <div className='container company-detail'>
@@ -78,13 +90,24 @@ var CompanyDetail = React.createClass({
                     Compare companies
                 </PageHeader>
                 <Loader loaded={chartLoaded}>
-                    <CompanyCompareSelect
-                        companies={companies}
-                        onChange={this._handleCompareChange}
-                    />
-                    <EmissionChart
-                        companies={selectedCompanies}
-                    />
+                    <Grid>
+                        <Row>
+                            <Col xs={12} sm={8} md={9}>
+                                <CompanyCompareSelect
+                                    companies={companies}
+                                    onChange={this._handleCompareChange}
+                                />
+                                {emissionChart}
+                            </Col>
+                            <Col xs={12} sm={4} md={3}>
+                                <CompanyAccordion
+                                    companies={selectedCompanies}
+                                    onDeselect={this._handleDeselect}
+                                />
+                            </Col>
+                        </Row>
+                    </Grid>
+
                 </Loader>
             </div>
         );
@@ -102,10 +125,6 @@ var CompanyCompareSelect  = React.createClass({
         this.props.onChange(value.split(',').map(val => {
             return parseInt(val);
         }));
-    },
-
-    shouldComponentUpdate: function() {
-        return false;
     },
 
     render () {
@@ -137,4 +156,21 @@ var CompanyCompareSelect  = React.createClass({
 });
 
 
-export { CompanyDetail };
+var NoCompaniesSelectedMsg = React.createClass({
+    render () {
+        return (
+            <div>
+                <hr />
+                <Alert bsStyle='warning'>
+                    <bold>No companies selected!</bold>
+                    <span> Choose a few using the field above
+                        <Glyphicon glyph='hand-up' />
+                    </span>
+                </Alert>
+            </div>
+        );
+    }
+});
+
+
+export { Companies };

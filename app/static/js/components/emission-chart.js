@@ -4,6 +4,7 @@
 import React from 'react';
 import _ from 'underscore';
 import numeral from 'numeral';
+import chroma from 'chroma-js';
 
 import { GoogleLineChart } from 'components/chart.js';
 
@@ -13,9 +14,9 @@ var EmissionChart  = React.createClass({
         companies: React.PropTypes.array.isRequired,
     },
 
-    _formatEmission(num, company) {
+    _formatEmission(num) {
         num = numeral(num).format('0.0a');
-        return `${num} tonnes (${company.name})`;
+        return `${num} tonnes`;
     },
 
     render () {
@@ -35,7 +36,7 @@ var EmissionChart  = React.createClass({
                 data.addRow([
                     new Date(e.year + ''),
                     emissions,
-                    this._formatEmission(emissions, company),
+                    this._formatEmission(emissions),
                     i === arr.length - 1 ? emissions : null,
                     null,
                 ]);
@@ -53,7 +54,7 @@ var EmissionChart  = React.createClass({
                         null,
                         null,
                         emissions,
-                        this._formatEmission(emissions, company),
+                        this._formatEmission(emissions),
                     ]);
                 });
 
@@ -63,7 +64,7 @@ var EmissionChart  = React.createClass({
                     null,
                     null,
                     emissions,
-                    this._formatEmission(emissions, company),
+                    this._formatEmission(emissions),
                 ]);
             }
 
@@ -88,7 +89,14 @@ var EmissionChart  = React.createClass({
         // Set chart options & formatting:
         let series = {};
         companies.forEach((c, i) => {
-            series[i*2 + 1] = {lineDashStyle: [6, 6], visibleInLegend: false};
+            series[i*2] = {
+                color: chroma.brewer.Set1[i],
+            };
+            series[i*2 + 1] = {
+                color: chroma.brewer.Set1[i],
+                lineDashStyle: [6, 6],
+                visibleInLegend: false
+            };
         });
 
         let options = {
