@@ -3,8 +3,7 @@
 import React from 'react';
 import _ from 'underscore';
 
-import { Link } from 'react-router';
-import { Alert, PageHeader } from 'react-bootstrap';
+import { PageHeader } from 'react-bootstrap';
 import Select from 'react-select';
 import Loader from 'react-loader';
 
@@ -21,7 +20,7 @@ var CompanyDetail = React.createClass({
 
     getInitialState() {
         return {
-            companies: {},
+            companies: [],
             chartLoaded: false,
         };
     },
@@ -30,18 +29,22 @@ var CompanyDetail = React.createClass({
         this._fetchCompanies();
     },
 
-    _fetchCompanies(companyId) {
+    _fetchCompanies() {
         this.setState({
             chartLoaded: false,
         });
 
-        APIClient.getCompanies(companyId)
+        APIClient.getCompanies()
             .done(resp => {
-                let companies = _.indexBy(resp.data, 'id');
-                companies[this.props.params.companyId].isBaseCompany = true;
+                // Initially select the 1st company with emission data:
+                let firstIdWithEmissionData = _.findIndex(resp.data, c => {
+                    return c.emission_reports.length > 0;
+                });
+
+                resp.data[firstIdWithEmissionData].selected = true;
 
                 this.setState({
-                    companies: companies,
+                    companies: resp.data,
                 });
             })
             .fail((xhr, textStatus, errorThrown) => {
@@ -53,62 +56,36 @@ var CompanyDetail = React.createClass({
     },
 
     _handleCompareChange(selectedIds) {
-        let companies = this.state.companies;
-        _.each(companies, (company, companyId) => {
-            companies[companyId].isCompared = _.contains(selectedIds, companyId);
+        let updatedCompanies = this.state.companies.map(c => {
+            c.selected = _.contains(selectedIds, c.id);
+            return c;
         });
 
         this.setState({
-            companies: companies,
+            companies: updatedCompanies,
         });
     },
 
     render() {
         let {chartLoaded, companies} = this.state;
-        let active = companies[this.props.params.companyId];
-        let content;
-
-        if (active) {
-            let compareSelect;
-            let emissionChart = <NoEmissionReportsMsg company={active} />;
-
-            if (active.emission_reports.length > 0) {
-                let companiesInChart = _.values(companies).filter(c => {
-                    return c.isCompared || c.isBaseCompany;
-                });
-
-                emissionChart = (
-                    <div>
-                        <EmissionChart companies={companiesInChart} />
-                    </div>
-                );
-
-                compareSelect = (
-                    <CompanyCompareSelect
-                        companies={_.values(companies)}
-                        onChange={this._handleCompareChange}
-                    />
-                );
-            }
-
-            content = (
-                <div>
-                    <PageHeader>
-                        {active.name}
-                        <small> {active.country}/{active.sector}/${active.revenue}bn</small>
-                    </PageHeader>
-                    <Loader loaded={chartLoaded}>
-                        {compareSelect}
-                        {emissionChart}
-                    </Loader>
-                </div>
-            );
-        }
+        let selectedCompanies = companies.filter(c => {
+            return c.selected;
+        });
 
         return (
             <div className='container company-detail'>
-                <Link to='companyList'>Back</Link>
-                {content}
+                <PageHeader>
+                    Compare companies
+                </PageHeader>
+                <Loader loaded={chartLoaded}>
+                    <CompanyCompareSelect
+                        companies={companies}
+                        onChange={this._handleCompareChange}
+                    />
+                    <EmissionChart
+                        companies={selectedCompanies}
+                    />
+                </Loader>
             </div>
         );
     }
@@ -122,7 +99,9 @@ var CompanyCompareSelect  = React.createClass({
     },
 
     _handleChange(value) {
-        this.props.onChange(value.split(','));
+        this.props.onChange(value.split(',').map(val => {
+            return parseInt(val);
+        }));
     },
 
     shouldComponentUpdate: function() {
@@ -130,8 +109,16 @@ var CompanyCompareSelect  = React.createClass({
     },
 
     render () {
-        let options = this.props.companies.filter(c => {
-            return c.emission_reports.length > 0 && !c.isBaseCompany;
+        let options = this.props.companies.map(c => {
+            return {
+                value: c.id,
+                label: c.name,
+                disabled: c.emission_reports.length === 0,
+            };
+        });
+
+        let value = this.props.companies.filter(c => {
+            return c.selected;
         }).map(c => {
             return {value: c.id, label: c.name};
         });
@@ -139,26 +126,12 @@ var CompanyCompareSelect  = React.createClass({
         return (
             <Select
                 options={options}
+                value={value}
                 multi={true}
                 onChange={this._handleChange}
                 searchable={true}
                 placeholder='Compare with other companies'
             />
-        );
-    }
-});
-
-
-var NoEmissionReportsMsg  = React.createClass({
-    propTypes: {
-        company: React.PropTypes.object.isRequired,
-    },
-
-    render () {
-        return (
-            <Alert bsStyle='warning'>
-                {this.props.company.name} has no emission reports.
-            </Alert>
         );
     }
 });
