@@ -3,7 +3,7 @@
 import React from 'react';
 import _ from 'underscore';
 
-import { PageHeader, Alert, Glyphicon, Grid, Row, Col } from 'react-bootstrap';
+import { Alert, Glyphicon, Grid, Row, Col } from 'react-bootstrap';
 import Select from 'react-select';
 import Loader from 'react-loader';
 
@@ -35,6 +35,14 @@ var Companies = React.createClass({
                     return c.emission_reports.length > 0;
                 });
                 resp.data[firstIdWithEmissionData].selected = true;
+
+                resp.data.sort((a, b) => {
+                    let aHasData = a.emission_reports.length > 0;
+                    let bHasData = b.emission_reports.length > 0;
+                    if (aHasData && !bHasData) { return -1; }
+                    if (bHasData && !aHasData) { return 1; }
+                    return a.name.localeCompare(b.name);
+                });
 
                 this.setState({
                     companies: resp.data,
@@ -86,9 +94,7 @@ var Companies = React.createClass({
 
         return (
             <div className='container company-detail'>
-                <PageHeader>
-                    Compare companies
-                </PageHeader>
+                <b>Select companies to compare: </b>
                 <Loader loaded={chartLoaded}>
                     <Grid>
                         <Row>
