@@ -6,9 +6,9 @@ import _ from 'underscore';
 
 var d3MultiLineChart = {
     _margin: {
-        top: 40,
+        top: 50,
         right: 100,
-        bottom: 30,
+        bottom: 50,
         left: 130
     },
 
@@ -20,9 +20,12 @@ var d3MultiLineChart = {
             .append('g')
             .attr('transform', `translate(${this._margin.left},${this._margin.top})`);
 
-        svg.append('g').attr('class', 'x axis');
-        svg.append('g').attr('class', 'y axis');
         svg.append('g').attr('class', 'lines');
+        svg.append('g').attr('class', 'x axis');
+        let yAxisG = svg.append('g').attr('class', 'y axis');
+
+        yAxisG.append('text')
+            .attr('class', 'label');
 
         this.update(el, series);
     },
@@ -91,7 +94,7 @@ var d3MultiLineChart = {
 
         let lines = lineContainer.selectAll('.line')
             .data(data, d => { return d.key; });
-        console.log(data);
+
         // ENTER
         lines.enter().append('path')
             .attr('class', 'line');
@@ -105,28 +108,41 @@ var d3MultiLineChart = {
     },
 
     _drawAxes(el, scales, series) {
+        let width = el.offsetWidth - this._margin.left - this._margin.right;
+        let height = el.offsetHeight - this._margin.top - this._margin.bottom;
+
         let xAxis = d3.svg.axis()
             .scale(scales.x)
-            .orient('bottom');
+            .orient('bottom')
+            .tickFormat(d3.format('f'))
+            .outerTickSize(0);
 
         let yAxis = d3.svg.axis()
             .scale(scales.y)
+            .ticks(4)
             .orient('left')
-            .ticks(5);
+            .innerTickSize(-width)
+            .outerTickSize(0)
+            .tickPadding(10);
 
-        let height = el.offsetHeight - this._margin.top - this._margin.bottom;
         d3.select(el).select('.x.axis')
             .attr('transform', `translate(0,${height})`)
-            .call(xAxis);
+            .call(xAxis)
+            .selectAll('text')
+            .style('text-anchor', 'end')
+            .attr('dy', '.3em')
+            .attr('dx', '-.8em')
+            .attr('transform', 'rotate(-60)');
 
         d3.select(el).select('.y.axis')
-            .call(yAxis)
-            .append('text')
+            .call(yAxis);
+
+        d3.select(el).select('.y.axis .label')
             .attr('transform', 'rotate(-90)')
             .attr('y', 6)
             .attr('dy', '.71em')
             .style('text-anchor', 'end')
-            .text('GDP in bn $');
+            .text('Emissions (tonnes CO2 equivalent)');
     },
 };
 

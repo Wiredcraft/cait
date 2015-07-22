@@ -1,3 +1,25 @@
 .company-accordion .panel-title a {
     text-decoration: none;
 }
+
+.axis line {
+    shape-rendering: crispEdges;
+    opacity: 0.2;
+}
+
+.axis text {
+    font-family: 'Arial';
+    font-size: 14px;
+    fill: #444444;
+    stroke: none;
+    stroke-width: 0px;
+}
+
+.axis.x .tick text {
+    font-size: 13px;
+}
+
+.lines .line {
+    fill: none;
+    stroke-width: 1.5px;
+}

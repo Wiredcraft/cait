@@ -1,11 +1,47 @@
 'use strict';
 /* global google */
 
-
 import React from 'react';
+import $ from 'jquery';
 import _ from 'underscore';
 
+import { d3MultiLineChart } from 'd3chart.js';
 import { WindowResizeMixin } from 'mixins.js';
+
+
+var MultiLineChart  = React.createClass({
+    propTypes: {
+        series: React.PropTypes.object,
+        height: React.PropTypes.number,
+    },
+
+    mixins: [WindowResizeMixin],
+
+    componentDidMount() {
+        var el = this.getDOMNode();
+
+        d3MultiLineChart.create(el, {
+            width: $(el).width(),
+            height: this.props.height || 400,
+        }, this.props.series);
+    },
+
+    componentDidUpdate() {
+        var el = this.getDOMNode();
+        d3MultiLineChart.update(el, this.props.series);
+    },
+
+    componentWillUnmount() {
+        var el = this.getDOMNode();
+        d3MultiLineChart.destroy(el);
+    },
+
+    render () {
+        return (
+            <div className='chart' />
+        );
+    },
+});
 
 
 var GoogleLineChart  = React.createClass({
@@ -37,10 +73,14 @@ var GoogleLineChart  = React.createClass({
             focusTarget: 'category',
             width: '100%',
             legend: {position: 'bottom'},
-            hAxis: {format: 'y', gridlines: {color: 'transparent'}, baselineColor: 'transparent'},
             vAxis: {baselineColor: 'transparent'},
+            hAxis: {gridlines: {color: 'transparent'}, baselineColor: 'transparent'},
             height: 400,
         };
+
+        options.vAxis = _.extend(defaultOpts.vAxis, options.vAxis || {});
+        options.hAxis = _.extend(defaultOpts.hAxis, options.hAxis || {});
+
 
         return _.extend(defaultOpts, options);
     },
@@ -57,4 +97,4 @@ var GoogleLineChart  = React.createClass({
 });
 
 
-export { GoogleLineChart };
+export { GoogleLineChart, MultiLineChart };
