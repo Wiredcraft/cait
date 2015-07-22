@@ -36,6 +36,14 @@ var Companies = React.createClass({
                 });
                 resp.data[firstIdWithEmissionData].selected = true;
 
+                resp.data.sort((a, b) => {
+                    let aHasData = a.emission_reports.length > 0;
+                    let bHasData = b.emission_reports.length > 0;
+                    if (aHasData && !bHasData) { return -1; }
+                    if (bHasData && !aHasData) { return 1; }
+                    return a.name.localeCompare(b.name);
+                });
+
                 this.setState({
                     companies: resp.data,
                 });
