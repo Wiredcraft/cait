@@ -2,15 +2,27 @@
     text-decoration: none;
 }
 
-.axis line {
+.chart .title {
+    font-weight: bold;
+}
+
+.axis {
     shape-rendering: crispEdges;
-    opacity: 0.2;
+}
+
+.axis .axis-label {
+    font-style: italic;
+}
+
+.axis line {
+    stroke: #CCCCCC;
+    stroke-width: 1px;
 }
 
 .axis text {
     font-family: 'Arial';
     font-size: 14px;
-    fill: #444444;
+    fill: #222222;
     stroke: none;
     stroke-width: 0px;
 }
@@ -19,7 +31,11 @@
     font-size: 13px;
 }
 
+.axis.x .tick line {
+    stroke: none;
+}
+
 .lines .line {
     fill: none;
-    stroke-width: 1.5px;
+    stroke-width: 2px;
 }

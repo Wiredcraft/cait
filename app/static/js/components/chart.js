@@ -13,27 +13,32 @@ var MultiLineChart  = React.createClass({
     propTypes: {
         series: React.PropTypes.object,
         height: React.PropTypes.number,
+        title: React.PropTypes.string,
     },
 
     mixins: [WindowResizeMixin],
+
+    getDefaultProps() {
+        return {
+            series: {},
+            height: 320,
+            title: '',
+        };
+    },
 
     componentDidMount() {
         var el = this.getDOMNode();
 
         d3MultiLineChart.create(el, {
             width: $(el).width(),
-            height: this.props.height || 400,
+            height: this.props.height,
+            title: this.props.title,
         }, this.props.series);
     },
 
     componentDidUpdate() {
         var el = this.getDOMNode();
         d3MultiLineChart.update(el, this.props.series);
-    },
-
-    componentWillUnmount() {
-        var el = this.getDOMNode();
-        d3MultiLineChart.destroy(el);
     },
 
     render () {
@@ -68,10 +73,9 @@ var GoogleLineChart  = React.createClass({
 
     _getChartOptions(options) {
         var defaultOpts = {
-            backgroundColor: {fill: 'transparent'},
-            explorer: null,
-            focusTarget: 'category',
             width: '100%',
+            backgroundColor: {fill: 'transparent'},
+            focusTarget: 'category',
             legend: {position: 'bottom'},
             vAxis: {baselineColor: 'transparent'},
             hAxis: {gridlines: {color: 'transparent'}, baselineColor: 'transparent'},
@@ -80,7 +84,6 @@ var GoogleLineChart  = React.createClass({
 
         options.vAxis = _.extend(defaultOpts.vAxis, options.vAxis || {});
         options.hAxis = _.extend(defaultOpts.hAxis, options.hAxis || {});
-
 
         return _.extend(defaultOpts, options);
     },

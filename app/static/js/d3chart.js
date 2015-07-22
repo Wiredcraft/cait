@@ -2,11 +2,12 @@
 
 import d3 from 'd3';
 import _ from 'underscore';
+import chroma from 'chroma-js';
 
 
 var d3MultiLineChart = {
     _margin: {
-        top: 10,
+        top: 40,
         right: 130,
         bottom: 50,
         left: 130
@@ -19,6 +20,13 @@ var d3MultiLineChart = {
             .attr('height', props.height)
             .append('g')
             .attr('transform', `translate(${this._margin.left},${this._margin.top})`);
+
+        svg.append('text')
+            .attr('class', 'title')
+            .attr('x', '60px')
+            .attr('y', '-20px')
+            .style('text-anchor', 'middle')
+            .text(props.title || '');
 
         let yAxisG = svg.append('g').attr('class', 'y axis');
         yAxisG.append('text')
@@ -63,9 +71,10 @@ var d3MultiLineChart = {
     },
 
     _drawLines(el, scales, series) {
-        let {x, y, minX, maxX} = scales;
-        let color = d3.scale.category10().
-            domain(_.keys(series));
+        let {x, y, minX} = scales;
+        let color = d3.scale.ordinal()
+            .range(chroma.brewer.Set1)
+            .domain(_.keys(series));
 
         // Group data by year:
         let years = {};
@@ -77,21 +86,27 @@ var d3MultiLineChart = {
         });
         years = _.sortBy(_.values(years), d => { return -d.year; });
 
-        // Separate values and dashed values:
+        // Separate values, dashed values:
+        let circleData = [];
         let data = color.domain().map(key => {
             let values = [];
             let dashedValues = [];
+
             years.forEach(year => {
                 let point = year[key];
                 if (point) {
                     point.year = year.year;
-                    // Dashed path starts where solid path ends:
+                    point.key = key;
+
                     if (point.type !== 'dashed') {
                         if (dashedValues.length > 0) {
                             dashedValues.push(point);
                         }
                         values.push(point);
                     } else {
+                        if (dashedValues.length === 0) {
+                            circleData.push(point);
+                        }
                         dashedValues.push(point);
                     }
                 }
@@ -108,56 +123,72 @@ var d3MultiLineChart = {
             .x(d => { return x(d.year - minX + 1); })
             .y(d => { return y(d.value); });
 
-        let lineContainer = d3.select(el).selectAll('.lines');
 
+        // Enter/update/remove normal lines:
+        let lineContainer = d3.select(el).selectAll('.lines');
         let lines = lineContainer.selectAll('.line')
             .data(data, d => { return d.key; });
 
-        // ENTER
         lines.enter().append('path')
             .attr('class', 'line');
 
-        // UPDATE
         lines.attr('d', d => { return line(d.values); })
             .style('stroke', d => { return color(d.key); });
 
-        // REMOVE
         lines.exit().remove();
 
 
-        let dashedLines = lineContainer.selectAll('.line.dashed')
-            .data(data, d => { return d.key; });
+        // Enter/update/remove dashed lines:
+        let dashedData = data.filter(d => {
+            return d.dashedValues.length > 0;
+        });
 
-        // ENTER
+        let dashedLines = lineContainer.selectAll('.line.dashed')
+            .data(dashedData, d => { return d.key; });
+
         dashedLines.enter().append('path')
             .attr('class', 'line dashed');
 
-        // UPDATE
         dashedLines.attr('d', d => { return line(d.dashedValues); })
             .style('stroke', d => { return color(d.key); })
             .style('stroke-dasharray', '6 6');
 
-        // REMOVE
         dashedLines.exit().remove();
+
+
+        // Enter/update/remove circles:
+        let circleContainer = d3.select(el).selectAll('.circles');
+        let circles = circleContainer.selectAll('.circle')
+            .data(circleData, d => { return d.key; });
+
+        circles.enter().append('circle')
+            .attr('class', 'circle');
+
+        circles.attr('r', 6)
+            .attr('cx', d => { return x(d.year - minX + 1); })
+            .attr('cy', d => { return y(d.value); })
+            .attr('fill', d => { return chroma(color(d.key)).brighten(3).hex(); })
+            .attr('stroke', d => { return color(d.key); });
+
+        circles.exit().remove();
     },
 
     _drawAxes(el, scales) {
-        let {x, y, minX, minY} = scales;
+        let {x, y, minX} = scales;
         let width = el.offsetWidth - this._margin.left - this._margin.right;
         let height = el.offsetHeight - this._margin.top - this._margin.bottom;
 
         let xAxis = d3.svg.axis()
             .scale(x)
             .orient('bottom')
-            .ticks(20, ",.1s")
-            .tickFormat((d, i, b) => {
+            .tickFormat(d => {
                 return d + minX - 1;
             })
             .outerTickSize(0);
 
         let yAxis = d3.svg.axis()
             .scale(y)
-            .ticks(4)
+            .ticks(6)
             .orient('left')
             .innerTickSize(-width)
             .outerTickSize(0)

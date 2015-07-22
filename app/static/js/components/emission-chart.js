@@ -6,7 +6,7 @@ import _ from 'underscore';
 import numeral from 'numeral';
 import chroma from 'chroma-js';
 
-import { GoogleLineChart } from 'components/chart.js';
+import { GoogleLineChart, MultiLineChart } from 'components/chart.js';
 
 
 var EmissionChart  = React.createClass({
@@ -24,17 +24,17 @@ var EmissionChart  = React.createClass({
 
         let dataTables = companies.map(company => {
             let data = new google.visualization.DataTable();
-            data.addColumn('date', 'Date');
+            data.addColumn('number', 'Year');
             data.addColumn('number', company.name);
             data.addColumn({type: 'string', role: 'tooltip'});
-            data.addColumn('number', `Reduction target - ${company.name}`);
+            data.addColumn('number', `${company.name} - Reduction target`);
             data.addColumn({type: 'string', role: 'tooltip'});
 
             // Plot emission report data:
             company.emission_reports.forEach((e, i, arr) => {
                 let emissions = e.emissions * 1e06;
                 data.addRow([
-                    new Date(e.year + ''),
+                    e.year,
                     emissions,
                     this._formatEmission(emissions),
                     i === arr.length - 1 ? emissions : null,
@@ -50,7 +50,7 @@ var EmissionChart  = React.createClass({
                 target.milestones.forEach(ms => {
                     let emissions = (baseEmissions - ms.size * baseEmissions) * 1e06;
                     data.addRow([
-                        new Date(ms.year + ''),
+                        ms.year,
                         null,
                         null,
                         emissions,
@@ -60,7 +60,7 @@ var EmissionChart  = React.createClass({
 
                 let emissions = (baseEmissions - target.size * baseEmissions) * 1e06;
                 data.addRow([
-                    new Date(target.final_year + ''),
+                    target.final_year,
                     null,
                     null,
                     emissions,
@@ -74,14 +74,16 @@ var EmissionChart  = React.createClass({
         // Merge companies into a single dataTable:
         let data = dataTables[0];
         if (dataTables.length > 1) {
+            let numberOfCols = data.getNumberOfColumns();
+
             data = _.reduce(_.rest(dataTables), (combined, newTable, i) => {
                 return google.visualization.data.join(
                     combined,
                     newTable,
                     'full',
                     [[0, 0]],
-                    _.range(1, 5 + i * 4),
-                    [1,2,3,4]
+                    _.range(1, numberOfCols + i * (numberOfCols - 1)),
+                    _.range(1, numberOfCols)
                 );
             }, dataTables[0]);
         }
@@ -95,24 +97,60 @@ var EmissionChart  = React.createClass({
             series[i*2 + 1] = {
                 color: chroma.brewer.Set1[i],
                 lineDashStyle: [6, 6],
-                visibleInLegend: false
+                visibleInLegend: false,
             };
         });
 
         let options = {
             title: 'Emissions per year',
             vAxis: { title: 'Emissions (tonnes CO2 equivalent)' },
+            hAxis: { format: '####' },
             interpolateNulls: true,
             series: series,
+            pointSize: 0.5,
         };
 
-        let dateFormatter = new google.visualization.DateFormat({
-            pattern: 'y',
+        // D3
+
+        let companySeries = {};
+        companies.forEach(c => {
+            companySeries[c.name] = [];
+
+            // Plot emission data:
+            c.emission_reports.forEach(e => {
+                companySeries[c.name].push({
+                    year: e.year,
+                    value: e.emissions * 1e06,
+                    type: 'solid',
+                });
+            });
+
+            // Plot possible reduction target data:
+            let target = _.first(c.reduction_targets);
+            let baseEmissions = _.last(c.emission_reports).emissions;
+
+            if (target && baseEmissions) {
+                target.milestones.forEach(ms => {
+                    companySeries[c.name].push({
+                        year: ms.year,
+                        value: (baseEmissions - ms.size * baseEmissions) * 1e06,
+                        type: 'dashed',
+                    });
+                });
+
+                companySeries[c.name].push({
+                    year: target.final_year,
+                    value: (baseEmissions - target.size * baseEmissions) * 1e06,
+                    type: 'dashed',
+                });
+            }
         });
-        dateFormatter.format(data, 0);
 
         return (
-            <GoogleLineChart data={data} options={options} />
+            <div>
+                {/* <MultiLineChart series={companySeries} title='Emissions per year' /> */}
+                <GoogleLineChart data={data} options={options} />
+            </div>
         );
     }
 });
