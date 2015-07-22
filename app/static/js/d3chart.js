@@ -6,8 +6,8 @@ import _ from 'underscore';
 
 var d3MultiLineChart = {
     _margin: {
-        top: 50,
-        right: 100,
+        top: 10,
+        right: 130,
         bottom: 50,
         left: 130
     },
@@ -20,46 +20,50 @@ var d3MultiLineChart = {
             .append('g')
             .attr('transform', `translate(${this._margin.left},${this._margin.top})`);
 
-        svg.append('g').attr('class', 'lines');
-        svg.append('g').attr('class', 'x axis');
         let yAxisG = svg.append('g').attr('class', 'y axis');
-
         yAxisG.append('text')
-            .attr('class', 'label');
+            .attr('class', 'axis-label');
+
+        svg.append('g').attr('class', 'x axis');
+        svg.append('g').attr('class', 'lines');
+        svg.append('g').attr('class', 'circles');
 
         this.update(el, series);
     },
 
     update(el, series) {
-        var scales = this._scales(el, series);
+        let scales = this._scales(el, series);
         this._drawAxes(el, scales, series);
         this._drawLines(el, scales, series);
     },
 
     _scales(el, series) {
         let data = _.values(series);
-        var width = el.offsetWidth - this._margin.right - this._margin.left;
-        var height = el.offsetHeight - this._margin.top - this._margin.bottom;
+        let width = el.offsetWidth - this._margin.right - this._margin.left;
+        let height = el.offsetHeight - this._margin.top - this._margin.bottom;
 
-        var x = d3.scale.linear()
+        let minX = d3.min(data, d => { return d3.min(d, c => { return c.year; }); });
+        let maxX = d3.max(data, d => { return d3.max(d, c => { return c.year; }); });
+
+        let x = d3.scale.log()
             .range([0, width])
             .domain([
-                d3.min(data, d => { return d3.min(d, c => { return c.year; }); }),
-                d3.max(data, d => { return d3.max(d, c => { return c.year; }); }),
+                1,
+                maxX - minX + 1,
             ]);
 
-        var y = d3.scale.linear()
+        let y = d3.scale.linear()
             .range([height, 0])
             .domain([
                 0,
-                d3.max(data, d => { return d3.max(d, c => { return c.value; }); }),
+                1.2 * d3.max(data, d => { return d3.max(d, c => { return c.value; }); }),
             ]);
 
-        return {x: x, y: y};
+        return {x: x, y: y, minX: minX, maxX: maxX};
     },
 
     _drawLines(el, scales, series) {
-        let {x, y} = scales;
+        let {x, y, minX, maxX} = scales;
         let color = d3.scale.category10().
             domain(_.keys(series));
 
@@ -71,23 +75,37 @@ var d3MultiLineChart = {
                 years[d.year][key] = {value: d.value, type: d.type};
             });
         });
-        years = _.values(years);
+        years = _.sortBy(_.values(years), d => { return -d.year; });
 
+        // Separate values and dashed values:
         let data = color.domain().map(key => {
+            let values = [];
+            let dashedValues = [];
+            years.forEach(year => {
+                let point = year[key];
+                if (point) {
+                    point.year = year.year;
+                    // Dashed path starts where solid path ends:
+                    if (point.type !== 'dashed') {
+                        if (dashedValues.length > 0) {
+                            dashedValues.push(point);
+                        }
+                        values.push(point);
+                    } else {
+                        dashedValues.push(point);
+                    }
+                }
+            });
+
             return {
                 key: key,
-                values: years.filter(d => { return d[key] !== undefined; }).map(d => {
-                    return {
-                        year: d.year,
-                        value: d[key].value,
-                        type: d[key].type,
-                    };
-                }),
+                values: values,
+                dashedValues: dashedValues
             };
         });
 
         let line = d3.svg.line()
-            .x(d => { return x(d.year); })
+            .x(d => { return x(d.year - minX + 1); })
             .y(d => { return y(d.value); });
 
         let lineContainer = d3.select(el).selectAll('.lines');
@@ -105,20 +123,40 @@ var d3MultiLineChart = {
 
         // REMOVE
         lines.exit().remove();
+
+
+        let dashedLines = lineContainer.selectAll('.line.dashed')
+            .data(data, d => { return d.key; });
+
+        // ENTER
+        dashedLines.enter().append('path')
+            .attr('class', 'line dashed');
+
+        // UPDATE
+        dashedLines.attr('d', d => { return line(d.dashedValues); })
+            .style('stroke', d => { return color(d.key); })
+            .style('stroke-dasharray', '6 6');
+
+        // REMOVE
+        dashedLines.exit().remove();
     },
 
-    _drawAxes(el, scales, series) {
+    _drawAxes(el, scales) {
+        let {x, y, minX, minY} = scales;
         let width = el.offsetWidth - this._margin.left - this._margin.right;
         let height = el.offsetHeight - this._margin.top - this._margin.bottom;
 
         let xAxis = d3.svg.axis()
-            .scale(scales.x)
+            .scale(x)
             .orient('bottom')
-            .tickFormat(d3.format('f'))
+            .ticks(20, ",.1s")
+            .tickFormat((d, i, b) => {
+                return d + minX - 1;
+            })
             .outerTickSize(0);
 
         let yAxis = d3.svg.axis()
-            .scale(scales.y)
+            .scale(y)
             .ticks(4)
             .orient('left')
             .innerTickSize(-width)
@@ -137,11 +175,11 @@ var d3MultiLineChart = {
         d3.select(el).select('.y.axis')
             .call(yAxis);
 
-        d3.select(el).select('.y.axis .label')
+        d3.select(el).select('.y.axis .axis-label')
             .attr('transform', 'rotate(-90)')
-            .attr('y', 6)
-            .attr('dy', '.71em')
-            .style('text-anchor', 'end')
+            .attr('y', '-100px')
+            .attr('dx', -height / 2)
+            .style('text-anchor', 'middle')
             .text('Emissions (tonnes CO2 equivalent)');
     },
 };
