@@ -2,7 +2,7 @@
 
 A simple prototype for the CAIT Business project.
 
-## Setup:
+## Dev setup:
 
 1. Clone repo: ```git clone git@github.com:wiredcraft/cait``` & ```cd cait```
 2. Setup virtualenv: ```virtualenv -p python3 venv``` & ```source venv/bin/activate```
@@ -13,4 +13,9 @@ A simple prototype for the CAIT Business project.
 And the front-end:
 
 1. Install deps: ```npm install```
-2. Start webpack-dev-server: ```npm start``` (listens for changes & auto-reloads)
+2. Start webpack-dev-server: ```npm start``` for auto-reloading bundles (make sure Flask is running in debug mode)
+
+## Deploy:
+
+1. Make sure Flask is not running in debug mode
+2. Run ```npm run build``` to build a minified bundle of the static files

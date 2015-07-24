@@ -4,6 +4,7 @@ secret_key
 app.db
 .jshintrc
 node_modules/
+app/static/js/bundles
 
 # Byte-compiled / optimized / DLL files
 __pycache__/

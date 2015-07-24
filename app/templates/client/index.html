@@ -3,5 +3,11 @@
 
 {% block content %}
 <div id='react'></div>
-<script src="http://localhost:8080/assets/bundle.js"></script>
+
+{% if config.DEBUG %}
+  <script src="http://localhost:8080/assets/bundle.js"></script>
+{% else %}
+  <script src="static/js/bundles/bundle.min.js"></script>
+{% endif %}
+
 {% endblock %}
