@@ -1,9 +1,7 @@
-'use strict';
-
 import _ from 'underscore';
 
 
-var WindowResizeMixin = {
+const WindowResizeMixin = {
     getInitialState() {
         return {windowWidth: window.innerWidth};
     },
@@ -30,7 +28,7 @@ var WindowResizeMixin = {
         if (_.isFunction(this._handleResize)) {
             this._handleResize(window.innerWidth);
         }
-    }
+    },
 };
 
 

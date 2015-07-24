@@ -1,4 +1,3 @@
-'use strict';
 /* global google */
 
 import '../css/style.css';
@@ -9,7 +8,7 @@ import React from 'react';
 import $ from 'jquery';
 import { Navbar } from 'react-bootstrap';
 
-import { Companies } from 'components/companies.js';
+import Companies from 'components/companies.js';
 
 
 let App = React.createClass({
@@ -20,17 +19,17 @@ let App = React.createClass({
                 <Companies />
             </div>
         );
-    }
+    },
 });
 
 
 // Load Google Charts libs before rendering:
-var options = {
+let options = {
     dataType: 'script',
     cache: true,
     url: 'https://www.google.com/jsapi',
 };
-$.ajax(options).done(function(){
+$.ajax(options).done(() => {
     google.load('visualization', '1', {
         packages: ['corechart'],
         callback() {

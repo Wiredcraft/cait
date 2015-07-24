@@ -1,4 +1,3 @@
-'use strict';
 /* global google */
 
 import React from 'react';
@@ -6,10 +5,10 @@ import _ from 'underscore';
 import numeral from 'numeral';
 import chroma from 'chroma-js';
 
-import { GoogleLineChart, MultiLineChart } from 'components/chart.js';
+import LineChart from 'components/line-chart.js';
 
 
-var EmissionChart  = React.createClass({
+const EmissionChart = React.createClass({
     propTypes: {
         companies: React.PropTypes.array.isRequired,
     },
@@ -19,7 +18,7 @@ var EmissionChart  = React.createClass({
         return `${num} tonnes`;
     },
 
-    render () {
+    render() {
         let {companies} = this.props;
 
         let dataTables = companies.map(company => {
@@ -91,10 +90,10 @@ var EmissionChart  = React.createClass({
         // Set chart options & formatting:
         let series = {};
         companies.forEach((c, i) => {
-            series[i*2] = {
+            series[i * 2] = {
                 color: chroma.brewer.Set1[i],
             };
-            series[i*2 + 1] = {
+            series[i * 2 + 1] = {
                 color: chroma.brewer.Set1[i],
                 lineDashStyle: [6, 6],
                 visibleInLegend: false,
@@ -110,50 +109,13 @@ var EmissionChart  = React.createClass({
             pointSize: 0.5,
         };
 
-        // D3
-
-        let companySeries = {};
-        companies.forEach(c => {
-            companySeries[c.name] = [];
-
-            // Plot emission data:
-            c.emission_reports.forEach(e => {
-                companySeries[c.name].push({
-                    year: e.year,
-                    value: e.emissions * 1e06,
-                    type: 'solid',
-                });
-            });
-
-            // Plot possible reduction target data:
-            let target = _.first(c.reduction_targets);
-            let baseEmissions = _.last(c.emission_reports).emissions;
-
-            if (target && baseEmissions) {
-                target.milestones.forEach(ms => {
-                    companySeries[c.name].push({
-                        year: ms.year,
-                        value: (baseEmissions - ms.size * baseEmissions) * 1e06,
-                        type: 'dashed',
-                    });
-                });
-
-                companySeries[c.name].push({
-                    year: target.final_year,
-                    value: (baseEmissions - target.size * baseEmissions) * 1e06,
-                    type: 'dashed',
-                });
-            }
-        });
-
         return (
             <div>
-                {/* <MultiLineChart series={companySeries} title='Emissions per year' /> */}
-                <GoogleLineChart data={data} options={options} />
+                <LineChart data={data} options={options} />
             </div>
         );
-    }
+    },
 });
 
 
-export { EmissionChart };
+export default EmissionChart;

@@ -1,55 +1,12 @@
-'use strict';
 /* global google */
 
 import React from 'react';
-import $ from 'jquery';
 import _ from 'underscore';
 
-import { d3MultiLineChart } from 'd3chart.js';
 import { WindowResizeMixin } from 'mixins.js';
 
 
-var MultiLineChart  = React.createClass({
-    propTypes: {
-        series: React.PropTypes.object,
-        height: React.PropTypes.number,
-        title: React.PropTypes.string,
-    },
-
-    mixins: [WindowResizeMixin],
-
-    getDefaultProps() {
-        return {
-            series: {},
-            height: 320,
-            title: '',
-        };
-    },
-
-    componentDidMount() {
-        var el = this.getDOMNode();
-
-        d3MultiLineChart.create(el, {
-            width: $(el).width(),
-            height: this.props.height,
-            title: this.props.title,
-        }, this.props.series);
-    },
-
-    componentDidUpdate() {
-        var el = this.getDOMNode();
-        d3MultiLineChart.update(el, this.props.series);
-    },
-
-    render () {
-        return (
-            <div className='chart' />
-        );
-    },
-});
-
-
-var GoogleLineChart  = React.createClass({
+const LineChart = React.createClass({
     propTypes: {
         data: React.PropTypes.object.isRequired,
         options: React.PropTypes.object.isRequired,
@@ -72,7 +29,7 @@ var GoogleLineChart  = React.createClass({
     },
 
     _getChartOptions(options) {
-        var defaultOpts = {
+        let defaultOpts = {
             width: '100%',
             backgroundColor: {fill: 'transparent'},
             focusTarget: 'category',
@@ -92,12 +49,12 @@ var GoogleLineChart  = React.createClass({
         this._drawChart(this.props.data, this.props.options);
     },
 
-    render () {
+    render() {
         return (
             <div ref='chart' />
         );
-    }
+    },
 });
 
 
-export { GoogleLineChart, MultiLineChart };
+export default LineChart;

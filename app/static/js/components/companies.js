@@ -1,5 +1,3 @@
-'use strict';
-
 import React from 'react';
 import _ from 'underscore';
 
@@ -7,12 +5,12 @@ import { Alert, Glyphicon, Grid, Row, Col } from 'react-bootstrap';
 import Select from 'react-select';
 import Loader from 'react-loader';
 
-import { APIClient } from 'apiclient.js';
-import { EmissionChart } from './emission-chart.js';
-import { CompanyAccordion } from './company-accordion.js';
+import APIClient from 'apiclient.js';
+import EmissionChart from './emission-chart.js';
+import CompanyAccordion from './company-accordion.js';
 
 
-var Companies = React.createClass({
+const Companies = React.createClass({
     getInitialState() {
         return {
             companies: [],
@@ -87,9 +85,7 @@ var Companies = React.createClass({
         let emissionChart = selectedCompanies.length === 0 ? (
             <NoCompaniesSelectedMsg />
         ) : (
-            <EmissionChart
-                companies={selectedCompanies}
-            />
+            <EmissionChart companies={selectedCompanies} />
         );
 
         return (
@@ -117,11 +113,11 @@ var Companies = React.createClass({
                 </Loader>
             </div>
         );
-    }
+    },
 });
 
 
-var CompanyCompareSelect  = React.createClass({
+const CompanyCompareSelect = React.createClass({
     propTypes: {
         companies: React.PropTypes.array.isRequired,
         onChange: React.PropTypes.func.isRequired,
@@ -129,11 +125,11 @@ var CompanyCompareSelect  = React.createClass({
 
     _handleChange(value) {
         this.props.onChange(value.split(',').map(val => {
-            return parseInt(val);
+            return parseInt(val, 10);
         }));
     },
 
-    render () {
+    render() {
         let options = this.props.companies.map(c => {
             return {
                 value: c.id,
@@ -158,12 +154,12 @@ var CompanyCompareSelect  = React.createClass({
                 placeholder='Compare with other companies'
             />
         );
-    }
+    },
 });
 
 
-var NoCompaniesSelectedMsg = React.createClass({
-    render () {
+const NoCompaniesSelectedMsg = React.createClass({
+    render() {
         return (
             <div>
                 <hr />
@@ -175,8 +171,8 @@ var NoCompaniesSelectedMsg = React.createClass({
                 </Alert>
             </div>
         );
-    }
+    },
 });
 
 
-export { Companies };
+export default Companies;
