@@ -1,6 +1,4 @@
-'use strict';
 /* global google */
-
 
 import React from 'react';
 import _ from 'underscore';
@@ -8,7 +6,7 @@ import _ from 'underscore';
 import { WindowResizeMixin } from 'mixins.js';
 
 
-var GoogleLineChart  = React.createClass({
+const LineChart = React.createClass({
     propTypes: {
         data: React.PropTypes.object.isRequired,
         options: React.PropTypes.object.isRequired,
@@ -31,16 +29,18 @@ var GoogleLineChart  = React.createClass({
     },
 
     _getChartOptions(options) {
-        var defaultOpts = {
-            backgroundColor: {fill: 'transparent'},
-            explorer: null,
-            focusTarget: 'category',
+        let defaultOpts = {
             width: '100%',
+            backgroundColor: {fill: 'transparent'},
+            focusTarget: 'category',
             legend: {position: 'bottom'},
-            hAxis: {format: 'y', gridlines: {color: 'transparent'}, baselineColor: 'transparent'},
             vAxis: {baselineColor: 'transparent'},
+            hAxis: {gridlines: {color: 'transparent'}, baselineColor: 'transparent'},
             height: 400,
         };
+
+        options.vAxis = _.extend(defaultOpts.vAxis, options.vAxis || {});
+        options.hAxis = _.extend(defaultOpts.hAxis, options.hAxis || {});
 
         return _.extend(defaultOpts, options);
     },
@@ -49,12 +49,12 @@ var GoogleLineChart  = React.createClass({
         this._drawChart(this.props.data, this.props.options);
     },
 
-    render () {
+    render() {
         return (
             <div ref='chart' />
         );
-    }
+    },
 });
 
 
-export { GoogleLineChart };
+export default LineChart;

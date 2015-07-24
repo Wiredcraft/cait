@@ -1,30 +1,27 @@
-'use strict';
-
 import $ from 'jquery';
 
 
-var APIClient = {};
+const APIClient = {
+    getCompanies() {
+        return this._ajax('GET', '/api/companies/');
+    },
 
-APIClient.getCompanies = function() {
-    return this._ajax('GET', '/api/companies/');
+    _ajax(type, url, data={}) {
+        type = type.toUpperCase();
+        let params = {
+            type: type,
+            url: url,
+            contentType: 'application/json',
+            data: this._csrfSafeMethod(type) ? data : JSON.stringify(data),
+        };
+
+        return $.ajax(params);
+    },
+
+    _csrfSafeMethod(method) {
+        return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
+    },
 };
 
-APIClient._ajax = function(type, url, data={}) {
-    type = type.toUpperCase();
-    let params = {
-        type: type,
-        url: url,
-        contentType: 'application/json',
-        data: csrfSafeMethod(type) ? data : JSON.stringify(data),
-    };
 
-    return $.ajax(params);
-};
-
-
-function csrfSafeMethod(method) {
-    return (/^(GET|HEAD|OPTIONS|TRACE)$/.test(method));
-}
-
-
-export { APIClient };
+export default APIClient;

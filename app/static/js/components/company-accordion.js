@@ -1,12 +1,10 @@
-'use strict';
-
 import React from 'react';
 import _ from 'underscore';
 
 import { Accordion, Panel } from 'react-bootstrap';
 
 
-var CompanyAccordion = React.createClass({
+const CompanyAccordion = React.createClass({
     propTypes: {
         companies: React.PropTypes.array.isRequired,
         onDeselect: React.PropTypes.func.isRequired,
@@ -35,11 +33,15 @@ var CompanyAccordion = React.createClass({
         });
     },
 
-    render () {
+    render() {
         let {companies, onDeselect} = this.props;
 
         return (
-            <Accordion activeKey={this.state.activeKey} className='company-accordion' onSelect={this._handleSelect}>
+            <Accordion
+                activeKey={this.state.activeKey}
+                className='company-accordion'
+                onSelect={this._handleSelect}
+            >
                 {companies.map(c => {
                     let header = (
                         <div>
@@ -66,8 +68,8 @@ var CompanyAccordion = React.createClass({
                 })}
             </Accordion>
         );
-    }
+    },
 });
 
 
-export { CompanyAccordion };
+export default CompanyAccordion;

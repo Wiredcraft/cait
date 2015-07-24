@@ -1,3 +1,41 @@
 .company-accordion .panel-title a {
     text-decoration: none;
 }
+
+.chart .title {
+    font-weight: bold;
+}
+
+.axis {
+    shape-rendering: crispEdges;
+}
+
+.axis .axis-label {
+    font-style: italic;
+}
+
+.axis line {
+    stroke: #CCCCCC;
+    stroke-width: 1px;
+}
+
+.axis text {
+    font-family: 'Arial';
+    font-size: 14px;
+    fill: #222222;
+    stroke: none;
+    stroke-width: 0px;
+}
+
+.axis.x .tick text {
+    font-size: 13px;
+}
+
+.axis.x .tick line {
+    stroke: none;
+}
+
+.lines .line {
+    fill: none;
+    stroke-width: 2px;
+}

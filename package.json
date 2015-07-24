@@ -5,7 +5,7 @@
   "main": "webpack.config.js",
   "scripts": {
     "start": "webpack-dev-server --host 0.0.0.0 --hot --progress --colors --d --inline",
-    "build": "webpack --progress --colors --optimize-minimize"
+    "build": "webpack --config webpack.prod.config.js --progress --colors --optimize-minimize"
   },
   "repository": {
     "type": "git",
@@ -40,6 +40,9 @@
     "webpack-dev-server": "~1.10.1",
     "node-libs-browser": "~0.5.2",
     "webpack": "~1.10.1",
-    "autoprefixer-loader": "~2.0.0"
+    "autoprefixer-loader": "~2.0.0",
+    "eslint-plugin-react": "~3.0.0",
+    "babel-eslint": "~3.1.26",
+    "eslint": "~0.24.1"
   }
 }

@@ -6,7 +6,7 @@ from app import db
 from app.api_module.models import Company, EmissionReport, ReductionTarget, Milestone
 
 
-DATA_PATH = 'seed_data/'
+DATA_PATH = os.path.join(os.path.dirname(os.path.realpath(__file__)), 'seed_data/')
 
 
 def init_db():
